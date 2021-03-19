@@ -1,16 +1,14 @@
 package main
 
-var DEGREE = 5
-
 type Node struct {
 	NumKeys  int
 	Leaf     bool
-	Keys     []int
+	Keys     []interface{}
 	Children []*Node
 }
 
 func CreateNewNode(degree int) *Node {
-	return &Node{0, true, make([]int, maxKeys(degree)), make([]*Node, maxChildren(degree))}
+	return &Node{0, true, make([]interface{}, maxKeys(degree)), make([]*Node, maxChildren(degree))}
 }
 
 func minKeys(degree int) int {
@@ -71,9 +69,9 @@ type BTree struct {
 	Degree int
 }
 
-func (btree *BTree) insertLeaf(n *Node, key int) {
+func (btree *BTree) insertLeaf(n *Node, key interface{}) {
 	nodeIdx := n.NumKeys - 1
-	for nodeIdx >= 0 && key < n.Keys[nodeIdx] {
+	for nodeIdx >= 0 && compareLessThan(n, key, nodeIdx) {
 		n.Keys[nodeIdx+1] = n.Keys[nodeIdx]
 		nodeIdx--
 	}
@@ -81,18 +79,18 @@ func (btree *BTree) insertLeaf(n *Node, key int) {
 	n.NumKeys += 1
 }
 
-func (btree *BTree) insertNonFull(n *Node, key int) {
+func (btree *BTree) insertNonFull(n *Node, key interface{}) {
 	if n.Leaf {
 		btree.insertLeaf(n, key)
 	} else {
 		nodeIdx := n.NumKeys - 1
-		for nodeIdx >= 0 && key < n.Keys[nodeIdx] {
+		for nodeIdx >= 0 && compareLessThan(n, key, nodeIdx) {
 			nodeIdx--
 		}
 		nodeIdx += 1
 		if n.Children[nodeIdx].NumKeys == maxKeys(btree.Degree) {
 			n.splitNode(btree.Degree, nodeIdx)
-			if key > n.Keys[nodeIdx] {
+			if compareGreaterThan(n, key, nodeIdx) {
 				nodeIdx += 1
 			}
 		}
@@ -100,7 +98,7 @@ func (btree *BTree) insertNonFull(n *Node, key int) {
 	}
 }
 
-func (btree *BTree) Insert(key int) {
+func (btree *BTree) Insert(key interface{}) {
 	root := btree.Root
 	if root.NumKeys == maxKeys(btree.Degree) {
 		newNode := CreateNewNode(btree.Degree)
@@ -115,9 +113,33 @@ func (btree *BTree) Insert(key int) {
 	}
 }
 
-func (btree *BTree) Search(root *Node, key int) (*Node, int) {
+func compareGreaterThan(n *Node, key interface{}, idx int) bool {
+	switch key.(type) {
+	case int:
+		return key.(int) > n.Keys[idx].(int)
+	case float64:
+		return key.(float64) > n.Keys[idx].(float64)
+	case string:
+		return key.(string) > n.Keys[idx].(string)
+	}
+	return false
+}
+
+func compareLessThan(n *Node, key interface{}, idx int) bool {
+	switch key.(type) {
+	case int:
+		return key.(int) < n.Keys[idx].(int)
+	case float64:
+		return key.(float64) < n.Keys[idx].(float64)
+	case string:
+		return key.(string) < n.Keys[idx].(string)
+	}
+	return false
+}
+
+func (btree *BTree) Search(root *Node, key interface{}) (*Node, int) {
 	idx := 0
-	for idx < root.NumKeys && key > root.Keys[idx] {
+	for idx < root.NumKeys && compareGreaterThan(root, key, idx) {
 		idx++
 	}
 
@@ -133,7 +155,7 @@ func (btree *BTree) Search(root *Node, key int) (*Node, int) {
 		// We reached the last node. Key does not exist
 		return nil, -1
 	} else {
-		if key > root.Keys[idx] {
+		if compareGreaterThan(root, key, idx) {
 			idx++
 		}
 		return btree.Search(root.Children[idx], key)
