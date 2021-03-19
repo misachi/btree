@@ -29,6 +29,10 @@ func maxChildren(degree int) int {
 	return 2 * degree
 }
 
+/*
+Split full node(with 2*Degree-1 and 2*Degree children) into
+2 partially full nodes
+*/
 func (n *Node) splitNode(degree int, idx int) {
 	fullNode := n.Children[idx]
 	newNode := CreateNewNode(degree)
@@ -40,6 +44,7 @@ func (n *Node) splitNode(degree int, idx int) {
 		newNode.Keys[counter] = fullNode.Keys[counter+degree]
 	}
 
+	/* Don't bother updating child node if node is a leaf */
 	if !fullNode.Leaf {
 		for counter := 0; counter < degree; counter++ {
 			newNode.Children[counter] = fullNode.Children[counter+degree]
@@ -55,6 +60,8 @@ func (n *Node) splitNode(degree int, idx int) {
 	for cnt := n.NumKeys; cnt < idx; cnt-- {
 		n.Keys[cnt+1] = n.Keys[cnt]
 	}
+
+	/* Get median key from child and push it to parent node */
 	n.Keys[idx] = fullNode.Keys[degree-1]
 	n.NumKeys += 1
 }
@@ -123,6 +130,7 @@ func (btree *BTree) Search(root *Node, key int) (*Node, int) {
 	}
 
 	if root.Leaf {
+		// We reached the last node. Key does not exist
 		return nil, -1
 	} else {
 		if key > root.Keys[idx] {

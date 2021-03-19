@@ -22,11 +22,15 @@ func main() {
 	bt.Insert(2)
 	bt.Insert(22)
 
-	/* We check the root and child nodes*/
-	fmt.Println(bt.Root.Keys)
-	fmt.Println(bt.Root.Children[0].Keys, bt.Root.Children[0].NumKeys)
-	fmt.Println(bt.Root.Children[1].Keys, bt.Root.Children[1].NumKeys)
-	node, idx := bt.Search(bt.Root, 2)
+	/*
+		Check the root and child nodes
+		Uncomment to see the first fee nodes including root
+	*/
+	// fmt.Println(bt.Root.Keys)
+	// fmt.Println(bt.Root.Children[0].Keys, bt.Root.Children[0].NumKeys)
+	// fmt.Println(bt.Root.Children[1].Keys, bt.Root.Children[1].NumKeys)
+
+	node, idx := bt.Search(bt.Root, 22)
 	if node != nil {
 		fmt.Println(node.Keys[idx])
 	} else {
